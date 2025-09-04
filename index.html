@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workplace Safety Counter</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+      body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        font-family: "Roboto", sans-serif;
+        color: #fff;
+      }
+
+      .card {
+        background: #ffffff10;
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 40px 60px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        animation: fadeIn 1s ease-out;
+      }
+
+      .title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .counter {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #ffcc00;
+        text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .footer {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="title">Workplace Safety Counter</div>
+      <div class="counter">
+        Days since Dill-Stain has royally dumpstered a pull: 0
+      </div>
+      <div class="footer">Stay safe out there 🚧</div>
+    </div>
+  </body>
+</html>
