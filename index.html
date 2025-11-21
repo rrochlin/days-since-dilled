@@ -3,82 +3,742 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Workplace Safety Counter</title>
+    <title>DILLON INCIDENT TRACKING SYSTEM</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@400;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
       body {
-        margin: 0;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: linear-gradient(135deg, #1e3c72, #2a5298);
-        font-family: "Roboto", sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #0a0a0a, #1a0000, #0a0a0a);
+        font-family: "Roboto Mono", monospace;
         color: #fff;
+        padding: 20px;
+        overflow-x: hidden;
       }
 
-      .card {
-        background: #ffffff10;
-        backdrop-filter: blur(10px);
-        border-radius: 16px;
-        padding: 40px 60px;
+      .warning-stripe {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: repeating-linear-gradient(
+          45deg,
+          #ffcc00,
+          #ffcc00 20px,
+          #000 20px,
+          #000 40px
+        );
+        z-index: 1000;
+        animation: slideStripe 2s linear infinite;
+      }
+
+      @keyframes slideStripe {
+        0% {
+          background-position: 0 0;
+        }
+        100% {
+          background-position: 56.57px 0;
+        }
+      }
+
+      .container {
+        max-width: 1600px;
+        margin: 50px auto 20px;
+        position: relative;
+      }
+
+      .header {
         text-align: center;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-        animation: fadeIn 1s ease-out;
+        margin-bottom: 40px;
+        padding: 30px;
+        background: rgba(255, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 3px solid #ff0000;
+        border-radius: 20px;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.5),
+          inset 0 0 30px rgba(255, 0, 0, 0.1);
+        animation: pulseGlow 3s ease-in-out infinite;
       }
 
-      .title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-      }
-
-      .counter {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #ffcc00;
-        text-shadow: 0 0 10px rgba(255, 204, 0, 0.8);
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes pulse {
+      @keyframes pulseGlow {
         0%,
         100% {
-          transform: scale(1);
+          box-shadow: 0 0 30px rgba(255, 0, 0, 0.5),
+            inset 0 0 30px rgba(255, 0, 0, 0.1);
         }
         50% {
-          transform: scale(1.05);
+          box-shadow: 0 0 50px rgba(255, 0, 0, 0.8),
+            inset 0 0 50px rgba(255, 0, 0, 0.2);
         }
+      }
+
+      h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 3.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 5px;
+        color: #ff0000;
+        text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000, 0 0 60px #ff0000;
+        margin-bottom: 10px;
+        animation: flicker 4s ease-in-out infinite;
+      }
+
+      @keyframes flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        94% {
+          opacity: 0.8;
+        }
+        96% {
+          opacity: 1;
+        }
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        color: #ffcc00;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .chart-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border-radius: 16px;
+        padding: 25px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .chart-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          45deg,
+          transparent,
+          rgba(255, 0, 0, 0.05),
+          transparent
+        );
+        animation: shimmer 3s linear infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+        100% {
+          transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+      }
+
+      .chart-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 48px rgba(255, 0, 0, 0.3);
+      }
+
+      .chart-card.featured {
+        grid-column: 1 / -1;
+        border: 3px solid #ffcc00;
+        background: rgba(255, 204, 0, 0.05);
+      }
+
+      .chart-title {
+        font-family: "Orbitron", sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        color: #ffcc00;
+        text-align: center;
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .chart-card.featured .chart-title {
+        font-size: 2rem;
+        color: #ff0000;
+        text-shadow: 0 0 10px #ff0000;
+      }
+
+      .stat-banner {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: rgba(255, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 2px solid #ff0000;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-family: "Orbitron", sans-serif;
+        font-size: 3rem;
+        font-weight: 900;
+        color: #ff0000;
+        text-shadow: 0 0 15px #ff0000;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: #ffcc00;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
 
       .footer {
-        margin-top: 20px;
-        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 40px;
+        padding: 20px;
+        font-size: 1rem;
+        color: #ffcc00;
         opacity: 0.8;
+      }
+
+      canvas {
+        position: relative;
+        z-index: 1;
+      }
+
+      @media (max-width: 1200px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 2.5rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2rem;
+        }
+
+        .stat-value {
+          font-size: 2rem;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="card">
-      <div class="title">Workplace Safety Counter</div>
-      <div class="counter">
-        Days since Dill-Stain has royally dumpstered a pull: 0
+    <div class="warning-stripe"></div>
+
+    <div class="container">
+      <div class="header">
+        <h1>🚨 DILLON INCIDENT TRACKING SYSTEM 🚨</h1>
+        <div class="subtitle">
+          Comprehensive Shitstain Metrics & Analysis Dashboard
+        </div>
       </div>
-      <div class="footer">Stay safe out there 🚧</div>
+
+      <div class="stat-banner">
+        <div class="stat-card">
+          <div class="stat-value" id="totalIncidents">0</div>
+          <div class="stat-label">Total Incidents</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="currentStreak">0</div>
+          <div class="stat-label">Days Since Last</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="averageGap">0</div>
+          <div class="stat-label">Avg Days Between</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="totalDestruction">0</div>
+          <div class="stat-label">Destruction Points</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="chart-card featured">
+          <h2 class="chart-title">⚠️ CUMULATIVE DESTRUCTION METER ⚠️</h2>
+          <canvas id="destructionChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">📊 Incident Frequency</h2>
+          <canvas id="frequencyChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">⏱️ Days Between Incidents</h2>
+          <canvas id="gapChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">💀 Severity Score Analysis</h2>
+          <canvas id="severityChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h2 class="chart-title">📈 Monthly Incident Trend</h2>
+          <canvas id="monthlyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="footer">
+        ⚠️ STAY ALERT • STAY SAFE • WATCH FOR DILLON ⚠️<br />
+        Last Updated: <span id="lastUpdate"></span>
+      </div>
     </div>
+
+    <script>
+      // Generate incident data
+      function generateIncidentData() {
+        const incidents = [];
+        const startDate = new Date("2024-01-01");
+        const today = new Date();
+
+        // Generate realistic-ish incident pattern
+        let currentDate = new Date(startDate);
+        let incidentCount = 0;
+
+        while (currentDate <= today) {
+          // Random chance of incident (higher on Mondays and Fridays lol)
+          const dayOfWeek = currentDate.getDay();
+          let probability = 0.15;
+
+          if (dayOfWeek === 1) probability = 0.35; // Monday
+          if (dayOfWeek === 5) probability = 0.3; // Friday
+
+          if (Math.random() < probability) {
+            incidents.push({
+              date: new Date(currentDate),
+              severity: Math.floor(Math.random() * 10) + 1, // 1-10
+              description: `Incident #${++incidentCount}`,
+            });
+          }
+
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        // Ensure we always have at least a few incidents for display
+        if (incidents.length === 0) {
+          for (let i = 0; i < 5; i++) {
+            const randomDate = new Date(startDate.getTime() + Math.random() * (today.getTime() - startDate.getTime()));
+            incidents.push({
+              date: randomDate,
+              severity: Math.floor(Math.random() * 10) + 1,
+              description: `Incident #${i + 1}`,
+            });
+          }
+          incidents.sort((a, b) => a.date - b.date);
+        }
+
+        return incidents;
+      }
+
+      const incidents = generateIncidentData();
+      console.log(`Generated ${incidents.length} incidents`);
+
+      // Calculate stats
+      function calculateStats() {
+        if (incidents.length === 0) {
+          return {
+            total: 0,
+            daysSinceLast: 0,
+            avgGap: 0,
+            totalDestruction: 0,
+            gaps: [],
+          };
+        }
+
+        const today = new Date();
+        const lastIncident = incidents[incidents.length - 1];
+        const daysSinceLast = Math.floor(
+          (today - lastIncident.date) / (1000 * 60 * 60 * 24)
+        );
+
+        const gaps = [];
+        for (let i = 1; i < incidents.length; i++) {
+          const gap =
+            (incidents[i].date - incidents[i - 1].date) / (1000 * 60 * 60 * 24);
+          gaps.push(gap);
+        }
+
+        const avgGap =
+          gaps.length > 0
+            ? Math.floor(gaps.reduce((a, b) => a + b, 0) / gaps.length)
+            : 0;
+
+        const totalDestruction = incidents.reduce(
+          (sum, inc) => sum + inc.severity,
+          0
+        );
+
+        return {
+          total: incidents.length,
+          daysSinceLast,
+          avgGap,
+          totalDestruction,
+          gaps,
+        };
+      }
+
+      const stats = calculateStats();
+      console.log('Stats:', stats);
+
+      // Update stat cards
+      document.getElementById("totalIncidents").textContent = stats.total;
+      document.getElementById("currentStreak").textContent = stats.daysSinceLast;
+      document.getElementById("averageGap").textContent = stats.avgGap;
+      document.getElementById("totalDestruction").textContent =
+        stats.totalDestruction;
+      document.getElementById("lastUpdate").textContent =
+        new Date().toLocaleString();
+
+      // Chart.js default settings
+      Chart.defaults.color = "#ffffff";
+      Chart.defaults.borderColor = "rgba(255, 255, 255, 0.1)";
+      Chart.defaults.font.family = "'Roboto Mono', monospace";
+
+      // Verify all canvas elements exist
+      const canvasIds = ['destructionChart', 'frequencyChart', 'gapChart', 'severityChart', 'monthlyChart'];
+      canvasIds.forEach(id => {
+        const element = document.getElementById(id);
+        console.log(`Canvas ${id}:`, element ? 'found' : 'MISSING');
+      });
+
+      // 1. Cumulative Destruction Meter
+      const destructionData = incidents.reduce((acc, inc, idx) => {
+        const prev = idx > 0 ? acc[idx - 1].y : 0;
+        acc.push({
+          x: inc.date,
+          y: prev + inc.severity,
+        });
+        return acc;
+      }, []);
+
+      console.log('Destruction data:', destructionData.slice(0, 3));
+
+      try {
+        new Chart(document.getElementById("destructionChart"), {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: "Total Destruction",
+              data: destructionData,
+              borderColor: "#ff0000",
+              backgroundColor: "rgba(255, 0, 0, 0.2)",
+              borderWidth: 4,
+              fill: true,
+              tension: 0.4,
+              pointRadius: 6,
+              pointHoverRadius: 10,
+              pointBackgroundColor: "#ff0000",
+              pointBorderColor: "#ffcc00",
+              pointBorderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 2.5,
+          scales: {
+            x: {
+              type: "time",
+              time: {
+                unit: "month",
+              },
+              title: {
+                display: true,
+                text: "DATE",
+                color: "#ffcc00",
+                font: { size: 14, weight: "bold" },
+              },
+            },
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "CUMULATIVE DAMAGE POINTS",
+                color: "#ff0000",
+                font: { size: 14, weight: "bold" },
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+      } catch (error) {
+        console.error('Error creating destruction chart:', error);
+      }
+
+      // 2. Incident Frequency (Weekly)
+      const weeklyData = {};
+      incidents.forEach((inc) => {
+        const weekKey = getWeekKey(inc.date);
+        weeklyData[weekKey] = (weeklyData[weekKey] || 0) + 1;
+      });
+
+      const frequencyLabels = Object.keys(weeklyData);
+      const frequencyValues = Object.values(weeklyData);
+
+      console.log('Weekly data samples:', frequencyLabels.slice(0, 3), frequencyValues.slice(0, 3));
+
+      try {
+        new Chart(document.getElementById("frequencyChart"), {
+        type: "bar",
+        data: {
+          labels: frequencyLabels,
+          datasets: [
+            {
+              label: "Incidents",
+              data: frequencyValues,
+              backgroundColor: "rgba(255, 204, 0, 0.6)",
+              borderColor: "#ffcc00",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.5,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+              title: {
+                display: true,
+                text: "INCIDENTS PER WEEK",
+                color: "#ffcc00",
+                font: { weight: "bold" },
+              },
+            },
+            x: {
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+      } catch (error) {
+        console.error('Error creating frequency chart:', error);
+      }
+
+      // 3. Days Between Incidents
+      const gapLabels = incidents
+        .slice(1)
+        .map((inc, idx) => `#${idx + 2} - #${idx + 1}`);
+
+      console.log('Gap data length:', stats.gaps.length);
+
+      try {
+        new Chart(document.getElementById("gapChart"), {
+        type: "line",
+        data: {
+          labels: gapLabels,
+          datasets: [
+            {
+              label: "Days",
+              data: stats.gaps,
+              borderColor: "#00ff00",
+              backgroundColor: "rgba(0, 255, 0, 0.1)",
+              borderWidth: 3,
+              fill: true,
+              tension: 0.3,
+              pointBackgroundColor: "#00ff00",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 4,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.5,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "DAYS",
+                color: "#00ff00",
+                font: { weight: "bold" },
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+      } catch (error) {
+        console.error('Error creating gap chart:', error);
+      }
+
+      // 4. Severity Score
+      console.log('Last 10 incidents for radar:', incidents.slice(-10).length);
+
+      try {
+        new Chart(document.getElementById("severityChart"), {
+        type: "radar",
+        data: {
+          labels: incidents.slice(-10).map((_, idx) => `Incident ${idx + 1}`),
+          datasets: [
+            {
+              label: "Severity",
+              data: incidents.slice(-10).map((inc) => inc.severity),
+              borderColor: "#ff00ff",
+              backgroundColor: "rgba(255, 0, 255, 0.3)",
+              borderWidth: 3,
+              pointBackgroundColor: "#ff00ff",
+              pointBorderColor: "#fff",
+              pointRadius: 5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.5,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 10,
+              ticks: {
+                stepSize: 2,
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+      } catch (error) {
+        console.error('Error creating severity chart:', error);
+      }
+
+      // 5. Monthly Trend
+      const monthlyData = {};
+      incidents.forEach((inc) => {
+        const monthKey = inc.date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+        });
+        monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+      });
+
+      console.log('Monthly data:', Object.keys(monthlyData).slice(0, 3));
+
+      try {
+        new Chart(document.getElementById("monthlyChart"), {
+        type: "bar",
+        data: {
+          labels: Object.keys(monthlyData),
+          datasets: [
+            {
+              label: "Incidents",
+              data: Object.values(monthlyData),
+              backgroundColor: "rgba(255, 100, 0, 0.7)",
+              borderColor: "#ff6400",
+              borderWidth: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.5,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+              },
+              title: {
+                display: true,
+                text: "MONTHLY INCIDENTS",
+                color: "#ff6400",
+                font: { weight: "bold" },
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              display: false,
+            },
+          },
+        },
+      });
+      } catch (error) {
+        console.error('Error creating monthly chart:', error);
+      }
+
+      console.log('All charts initialized!');
+
+      // Helper function
+      function getWeekKey(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const week = getWeekNumber(d);
+        return `${year}-W${week}`;
+      }
+
+      function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+        return weekNo;
+      }
+    </script>
   </body>
 </html>
